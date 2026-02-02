@@ -1,133 +1,164 @@
 @extends('layouts.app')
 
-@section('title', 'CRUD Alat')
+@section('title', 'Manajemen Alat')
 
 @section('content')
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Daftar Alat</h2>
-        <button onclick="openModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition">
-            <i class="fas fa-plus"></i>
+    <!-- Header Section -->
+    <div class="mb-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Manajemen Alat</h1>
+            <p class="text-slate-600 text-sm mt-0.5">Kelola daftar alat yang tersedia</p>
+        </div>
+        <button onclick="openModal()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded text-xs font-semibold flex items-center space-x-1.5 transition-all duration-200 shadow">
+            <i class="fas fa-plus text-sm"></i>
             <span>Tambah Alat</span>
         </button>
     </div>
 
     <!-- Success Message -->
     @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            {{ session('success') }}
+        <div class="bg-white border-l-2 border-slate-800 text-slate-900 px-4 py-3 rounded mb-4 flex justify-between items-center shadow text-sm">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-check-circle text-slate-800 text-base"></i>
+                <span class="font-medium">{{ session('success') }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-slate-600 hover:text-slate-900">
+                <i class="fas fa-times text-base"></i>
+            </button>
         </div>
     @endif
 
-    <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Alat</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tersedia</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kondisi</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                @forelse($alats as $alat)
+    <!-- Error Message -->
+    @if(session('error'))
+        <div class="bg-white border-l-2 border-slate-800 text-slate-900 px-4 py-3 rounded mb-4 flex justify-between items-center shadow text-sm">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-exclamation-circle text-slate-800 text-base"></i>
+                <span class="font-medium">{{ session('error') }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-slate-600 hover:text-slate-900">
+                <i class="fas fa-times text-base"></i>
+            </button>
+        </div>
+    @endif
+
+    <!-- Table Container -->
+    <div class="bg-white rounded shadow overflow-hidden border border-slate-200">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-900 text-white">
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $alat['nama_alat'] }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $alat['kategori'] }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $alat['jumlah'] }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $alat['tersedia'] }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                @if($alat['kondisi'] == 'Baik') bg-green-100 text-green-800
-                                @elseif($alat['kondisi'] == 'Rusak Ringan') bg-yellow-100 text-yellow-800
-                                @else bg-red-100 text-red-800
-                                @endif">
-                                {{ $alat['kondisi'] }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <button class="text-blue-600 hover:text-blue-900">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <form action="{{ route('alat.destroy', $alat['id']) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus alat ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </td>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">No</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Nama Alat</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Kategori</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Stok</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Kondisi</th>
+                        <th class="px-4 py-2.5 text-center text-xs font-bold uppercase tracking-widest">Aksi</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                            Belum ada data alat. Klik tombol "Tambah Alat" untuk menambahkan.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="bg-white divide-y divide-slate-200">
+                    @forelse ($alats ?? [] as $index => $alat)
+                        <tr class="hover:bg-slate-50 transition-colors duration-150">
+                            <td class="px-4 py-2.5 text-xs text-slate-700 font-medium">{{ $index + 1 }}</td>
+                            <td class="px-4 py-2.5">
+                                <span class="text-slate-900 font-semibold text-xs">{{ $alat['nama'] ?? 'N/A' }}</span>
+                            </td>
+                            <td class="px-4 py-2.5">
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-200 text-slate-800">
+                                    {{ $alat['kategori'] ?? 'Umum' }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2.5 text-xs font-semibold text-slate-900">{{ $alat['stok'] ?? 0 }} Unit</td>
+                            <td class="px-4 py-2.5">
+                                @php
+                                    $kondisi = $alat['kondisi'] ?? 'baik';
+                                    $icon = $kondisi === 'baik' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+                                @endphp
+                                <span class="inline-flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium bg-slate-200 text-slate-800">
+                                    <i class="fas {{ $icon }} text-xs"></i>
+                                    <span>{{ ucfirst($kondisi) }}</span>
+                                </span>
+                            </td>
+                            <td class="px-4 py-2.5 text-center">
+                                <div class="flex justify-center space-x-1.5">
+                                    <button onclick="editAlat('{{ $alat['id'] ?? '' }}')" class="bg-slate-700 hover:bg-slate-800 text-white px-2.5 py-1 rounded text-xs font-medium transition-all duration-200 inline-flex items-center space-x-1">
+                                        <i class="fas fa-edit text-xs"></i>
+                                        <span>Edit</span>
+                                    </button>
+                                    <button onclick="deleteAlat('{{ $alat['id'] ?? '' }}')" class="bg-slate-600 hover:bg-slate-700 text-white px-2.5 py-1 rounded text-xs font-medium transition-all duration-200 inline-flex items-center space-x-1">
+                                        <i class="fas fa-trash text-xs"></i>
+                                        <span>Hapus</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center">
+                                <div class="flex flex-col items-center justify-center space-y-2">
+                                    <i class="fas fa-inbox text-slate-300 text-3xl"></i>
+                                    <p class="text-slate-500 font-medium text-xs">Belum ada data alat</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Modal Tambah Alat -->
-    <div id="alatModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900">Tambah Alat</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
+    <!-- Modal Tambah/Edit Alat -->
+    <div id="alatModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded shadow-lg max-w-sm w-full">
+            <!-- Modal Header -->
+            <div class="bg-slate-900 text-white px-4 py-3">
+                <h2 class="text-sm font-bold flex items-center">
+                    <i class="fas fa-plus-circle mr-2 text-base"></i>
+                    Tambah Alat
+                </h2>
             </div>
-            
-            <form action="{{ route('alat.store') }}" method="POST">
+
+            <!-- Modal Body -->
+            <form id="alatForm" method="POST" action="{{ route('alat.store') }}" class="p-4 space-y-3">
                 @csrf
                 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Alat</label>
-                    <input type="text" name="nama_alat" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Nama Alat</label>
+                    <input type="text" name="nama" required 
+                        class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-all duration-200 text-sm">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
-                    <select name="kategori" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Kategori</label>
+                    <select name="kategori" required class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-all duration-200 text-sm">
                         <option value="">Pilih Kategori</option>
                         <option value="Elektronik">Elektronik</option>
-                        <option value="Mekanik">Mekanik</option>
-                        <option value="Listrik">Listrik</option>
-                        <option value="Konstruksi">Konstruksi</option>
+                        <option value="Perkakas">Perkakas</option>
+                        <option value="Furniture">Furniture</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah</label>
-                    <input type="number" name="jumlah" min="1" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Stok</label>
+                    <input type="number" name="stok" required min="1"
+                        class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-all duration-200 text-sm">
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Kondisi</label>
-                    <select name="kondisi" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih Kondisi</option>
-                        <option value="Baik">Baik</option>
-                        <option value="Rusak Ringan">Rusak Ringan</option>
-                        <option value="Rusak Berat">Rusak Berat</option>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Kondisi</label>
+                    <select name="kondisi" required class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-all duration-200 text-sm">
+                        <option value="baik">Baik</option>
+                        <option value="rusak">Rusak</option>
                     </select>
                 </div>
 
-                <div class="flex space-x-2">
-                    <button type="submit" 
-                        class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition">
-                        Simpan
+                <!-- Modal Footer -->
+                <div class="flex space-x-2 pt-3 border-t border-slate-200">
+                    <button type="submit" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white py-1.5 rounded text-xs font-semibold transition-all duration-200">
+                        <i class="fas fa-save mr-1"></i>Simpan
                     </button>
-                    <button type="button" onclick="closeModal()" 
-                        class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-lg transition">
-                        Batal
+                    <button type="button" onclick="closeModal()" class="flex-1 bg-slate-300 hover:bg-slate-400 text-slate-900 py-1.5 rounded text-xs font-semibold transition-all duration-200">
+                        <i class="fas fa-times mr-1"></i>Batal
                     </button>
                 </div>
             </form>
@@ -137,13 +168,23 @@
     <script>
         function openModal() {
             document.getElementById('alatModal').classList.remove('hidden');
+            document.getElementById('alatForm').reset();
         }
 
         function closeModal() {
             document.getElementById('alatModal').classList.add('hidden');
         }
 
-        // Close modal when clicking outside
+        function editAlat(id) {
+            openModal();
+        }
+
+        function deleteAlat(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus alat ini?')) {
+                // Implement delete functionality
+            }
+        }
+
         window.onclick = function(event) {
             const modal = document.getElementById('alatModal');
             if (event.target == modal) {

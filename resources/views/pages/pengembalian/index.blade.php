@@ -1,158 +1,177 @@
 @extends('layouts.app')
 
-@section('title', 'Data Pengembalian')
+@section('title', 'Monitoring Pengembalian')
 
 @section('content')
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Data Pengembalian</h2>
-        <button onclick="openModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition">
-            <i class="fas fa-plus"></i>
-            <span>Proses Pengembalian</span>
+    <!-- Header Section -->
+    <div class="mb-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Monitoring Pengembalian</h1>
+            <p class="text-slate-600 text-sm mt-0.5">Pantau status pengembalian alat</p>
+        </div>
+        <button onclick="openModal()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded text-xs font-semibold flex items-center space-x-1.5 transition-all duration-200 shadow">
+            <i class="fas fa-plus text-sm"></i>
+            <span>Catat Pengembalian</span>
         </button>
     </div>
 
     <!-- Success Message -->
     @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-            <span>{{ session('success') }}</span>
-            <button onclick="this.parentElement.remove()" class="text-green-700 hover:text-green-900">
-                <i class="fas fa-times"></i>
+        <div class="bg-white border-l-2 border-slate-800 text-slate-900 px-4 py-3 rounded mb-4 flex justify-between items-center shadow text-sm">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-check-circle text-slate-800 text-base"></i>
+                <span class="font-medium">{{ session('success') }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-slate-600 hover:text-slate-900">
+                <i class="fas fa-times text-base"></i>
             </button>
         </div>
     @endif
 
-    <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peminjam</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alat</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Kembali</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kondisi</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terlambat</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Denda</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                @forelse($pengembalian as $item)
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item['peminjam'] }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $item['alat'] }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ date('d/m/Y', strtotime($item['tgl_kembali'])) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                @if($item['kondisi'] == 'Baik') bg-green-100 text-green-800
-                                @elseif($item['kondisi'] == 'Rusak Ringan') bg-yellow-100 text-yellow-800
-                                @else bg-red-100 text-red-800
-                                @endif">
-                                {{ $item['kondisi'] }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            @if($item['terlambat'] > 0)
-                                <span class="text-red-600">{{ $item['terlambat'] }} hari</span>
-                            @else
-                                <span class="text-green-600">Tepat waktu</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            @if($item['denda'] > 0)
-                                <span class="text-red-600">Rp {{ number_format($item['denda'], 0, ',', '.') }}</span>
-                            @else
-                                <span class="text-gray-600">Rp 0</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                            <i class="fas fa-undo text-4xl text-gray-300 mb-2"></i>
-                            <p>Belum ada data pengembalian.</p>
-                            <p class="text-sm">Klik tombol "Proses Pengembalian" untuk menambahkan.</p>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <div class="bg-white rounded shadow p-3 border-l-2 border-slate-800">
+            <p class="text-slate-600 text-xs font-medium uppercase">Dipinjam</p>
+            <p class="text-xl font-bold text-slate-900 mt-0.5">2</p>
+        </div>
+        <div class="bg-white rounded shadow p-3 border-l-2 border-slate-700">
+            <p class="text-slate-600 text-xs font-medium uppercase">Sudah Dikembalikan</p>
+            <p class="text-xl font-bold text-slate-900 mt-0.5">1</p>
+        </div>
+        <div class="bg-white rounded shadow p-3 border-l-2 border-slate-700">
+            <p class="text-slate-600 text-xs font-medium uppercase">Terlambat</p>
+            <p class="text-xl font-bold text-slate-900 mt-0.5">0</p>
+        </div>
+        <div class="bg-white rounded shadow p-3 border-l-2 border-slate-700">
+            <p class="text-slate-600 text-xs font-medium uppercase">Hilang</p>
+            <p class="text-xl font-bold text-slate-900 mt-0.5">0</p>
+        </div>
     </div>
 
-    <!-- Modal Proses Pengembalian -->
-    <div id="pengembalianModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900">Proses Pengembalian</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
+    <!-- Table Container -->
+    <div class="bg-white rounded shadow overflow-hidden border border-slate-200">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-900 text-white">
+                    <tr>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">No</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Alat</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Peminjam</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Tgl Pinjam</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Jatuh Tempo</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Tgl Kembali</th>
+                        <th class="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-widest">Status</th>
+                        <th class="px-4 py-2.5 text-center text-xs font-bold uppercase tracking-widest">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-slate-200">
+                    <tr class="hover:bg-slate-50 transition-colors duration-150">
+                        <td class="px-4 py-2.5 text-xs text-slate-700 font-medium">1</td>
+                        <td class="px-4 py-2.5 text-xs font-semibold text-slate-900">Laptop Dell</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">Budi Santoso</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">28 Jan 2026</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">01 Feb 2026</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">-</td>
+                        <td class="px-4 py-2.5">
+                            <span class="inline-flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium bg-slate-200 text-slate-800">
+                                <i class="fas fa-hourglass-half text-xs"></i>
+                                <span>Dipinjam</span>
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5 text-center">
+                            <div class="flex justify-center space-x-1.5">
+                                <button onclick="konfirmasiKembali()" class="bg-slate-700 hover:bg-slate-800 text-white px-2.5 py-1 rounded text-xs font-medium transition-all duration-200 inline-flex items-center space-x-1">
+                                    <i class="fas fa-check text-xs"></i>
+                                    <span>Kembali</span>
+                                </button>
+                                <button onclick="lihatDetail()" class="bg-slate-600 hover:bg-slate-700 text-white px-2.5 py-1 rounded text-xs font-medium transition-all duration-200 inline-flex items-center space-x-1">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors duration-150">
+                        <td class="px-4 py-2.5 text-xs text-slate-700 font-medium">2</td>
+                        <td class="px-4 py-2.5 text-xs font-semibold text-slate-900">Proyektor</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">Ani Wijaya</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">30 Jan 2026</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">02 Feb 2026</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">02 Feb 2026</td>
+                        <td class="px-4 py-2.5">
+                            <span class="inline-flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium bg-slate-200 text-slate-800">
+                                <i class="fas fa-check-circle text-xs"></i>
+                                <span>Dikembalikan</span>
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5 text-center">
+                            <button onclick="lihatDetail()" class="bg-slate-600 hover:bg-slate-700 text-white px-2.5 py-1 rounded text-xs font-medium transition-all duration-200 inline-flex items-center space-x-1">
+                                <i class="fas fa-eye text-xs"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Pengembalian -->
+    <div id="pengembalianModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded shadow-lg max-w-sm w-full">
+            <!-- Modal Header -->
+            <div class="bg-slate-900 text-white px-4 py-3">
+                <h2 class="text-sm font-bold flex items-center">
+                    <i class="fas fa-check-circle mr-2 text-base"></i>
+                    Konfirmasi Pengembalian
+                </h2>
             </div>
-            
-            <form action="{{ route('pengembalian.store') }}" method="POST">
+
+            <!-- Modal Body -->
+            <form method="POST" action="{{ route('pengembalian.store') }}" class="p-4 space-y-3">
                 @csrf
                 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Peminjam</label>
-                    <select name="peminjam" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih Peminjam</option>
-                        <option value="Administrator">Administrator</option>
-                        <option value="Ahmad Petugas">Ahmad Petugas</option>
-                        <option value="Budi Peminjam">Budi Peminjam</option>
-                        <option value="Citra Mahasiswa">Citra Mahasiswa</option>
-                    </select>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Alat</label>
+                    <input type="text" value="Laptop Dell" disabled
+                        class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none text-sm bg-slate-100">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Alat</label>
-                    <select name="alat" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih Alat</option>
-                        <option value="Laptop Dell">Laptop Dell</option>
-                        <option value="Kamera DSLR Canon">Kamera DSLR Canon</option>
-                        <option value="Bor Listrik Bosch">Bor Listrik Bosch</option>
-                        <option value="Proyektor Epson">Proyektor Epson</option>
-                    </select>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Peminjam</label>
+                    <input type="text" value="Budi Santoso" disabled
+                        class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none text-sm bg-slate-100">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Kembali</label>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Tanggal Pengembalian</label>
                     <input type="date" name="tgl_kembali" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-all duration-200 text-sm">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Kondisi Alat</label>
-                    <select name="kondisi" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Kondisi Alat</label>
+                    <select name="kondisi_kembali" required class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-all duration-200 text-sm">
                         <option value="">Pilih Kondisi</option>
-                        <option value="Baik">Baik</option>
-                        <option value="Rusak Ringan">Rusak Ringan</option>
-                        <option value="Rusak Berat">Rusak Berat</option>
+                        <option value="baik">Baik</option>
+                        <option value="rusak_ringan">Rusak Ringan</option>
+                        <option value="rusak_berat">Rusak Berat</option>
+                        <option value="hilang">Hilang</option>
                     </select>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Terlambat (hari)</label>
-                    <input type="number" name="terlambat" min="0" value="0" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        oninput="hitungDenda()">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-800 mb-1.5">Keterangan</label>
+                    <textarea name="keterangan" rows="3"
+                        class="w-full px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-all duration-200 text-sm resize-none"
+                        placeholder="Tulis keterangan..."></textarea>
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Denda (Rp)</label>
-                    <input type="number" name="denda" min="0" value="0" required 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Denda Rp 5.000 per hari keterlambatan</p>
-                </div>
-
-                <div class="flex space-x-2">
-                    <button type="submit" 
-                        class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition">
-                        Simpan
+                <!-- Modal Footer -->
+                <div class="flex space-x-2 pt-3 border-t border-slate-200">
+                    <button type="submit" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white py-1.5 rounded text-xs font-semibold transition-all duration-200">
+                        <i class="fas fa-save mr-1"></i>Simpan
                     </button>
-                    <button type="button" onclick="closeModal()" 
-                        class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-lg transition">
-                        Batal
+                    <button type="button" onclick="closeModal()" class="flex-1 bg-slate-300 hover:bg-slate-400 text-slate-900 py-1.5 rounded text-xs font-semibold transition-all duration-200">
+                        <i class="fas fa-times mr-1"></i>Batal
                     </button>
                 </div>
             </form>
@@ -168,14 +187,14 @@
             document.getElementById('pengembalianModal').classList.add('hidden');
         }
 
-        function hitungDenda() {
-            const terlambat = document.querySelector('input[name="terlambat"]').value;
-            const dendaPerHari = 5000;
-            const totalDenda = terlambat * dendaPerHari;
-            document.querySelector('input[name="denda"]').value = totalDenda;
+        function konfirmasiKembali() {
+            openModal();
         }
 
-        // Close modal when clicking outside
+        function lihatDetail() {
+            alert('Detail pengembalian');
+        }
+
         window.onclick = function(event) {
             const modal = document.getElementById('pengembalianModal');
             if (event.target == modal) {

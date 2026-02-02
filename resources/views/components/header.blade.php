@@ -1,16 +1,28 @@
-<header class="bg-white shadow-sm border-b-4 border-red-500">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+<header class="bg-white shadow border-b-2 border-slate-800">
+    <div class="max-w-full px-5 py-3 flex justify-between items-center">
+        <!-- Logo Section -->
         <div class="flex items-center space-x-2">
-            <i class="fas fa-wrench text-gray-700 text-xl"></i>
-            <h1 class="text-xl font-bold text-gray-800">Sistem Peminjaman Alat</h1>
+            <div class="bg-slate-800 p-2 rounded">
+                <i class="fas fa-wrench text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Sistem Peminjaman Alat</h1>
+                <p class="text-slate-500 text-xs font-medium">Management System</p>
+            </div>
         </div>
-        <div class="flex items-center space-x-4">
-            <span class="bg-red-100 text-red-600 px-3 py-1 rounded-lg text-sm font-medium">Admin</span>
-            <span class="text-gray-600 text-sm">{{ $username ?? 'Administrator' }}</span>
+
+        <!-- User Section -->
+        <div class="flex items-center space-x-3">
+            <div class="bg-slate-100 px-3 py-1.5 rounded border border-slate-200">
+                <span class="text-slate-700 text-xs font-bold uppercase tracking-wider">Admin</span>
+            </div>
+            <div class="h-6 w-px bg-slate-300"></div>
+            <span class="text-slate-700 text-sm font-medium">{{ $username ?? 'Administrator' }}</span>
+            
             <form method="POST" action="{{ route('logout') }}" class="inline">
                 @csrf
-                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                    Logout
+                <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded text-xs font-semibold transition-all duration-200">
+                    <i class="fas fa-sign-out-alt mr-1.5"></i>Logout
                 </button>
             </form>
         </div>

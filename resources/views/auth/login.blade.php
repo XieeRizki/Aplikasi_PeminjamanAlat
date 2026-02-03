@@ -69,7 +69,7 @@
             <div class="mt-6 pt-6 border-t border-slate-200">
                 <p class="text-center text-slate-600 text-xs">
                     Demo Username: <span class="font-semibold text-slate-900">admin</span> | 
-                    Password: <span class="font-semibold text-slate-900">password</span>
+                    Password: <span class="font-semibold text-slate-900">admin123</span>
                 </p>
             </div>
         </div>

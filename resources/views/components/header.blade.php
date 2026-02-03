@@ -1,3 +1,4 @@
+{{-- OPSI 4: Executive Style - Fixed Dimensions --}}
 <header class="bg-white shadow border-b-2 border-slate-800">
     <div class="max-w-full px-5 py-3 flex justify-between items-center">
         <!-- Logo Section -->
@@ -11,17 +12,21 @@
             </div>
         </div>
 
-        <!-- User Section -->
+        <!-- User Section - Executive Style -->
         <div class="flex items-center space-x-3">
-            <div class="bg-slate-100 px-3 py-1.5 rounded border border-slate-200">
-                <span class="text-slate-700 text-xs font-bold uppercase tracking-wider">Admin</span>
+            <div class="flex items-center space-x-3 px-4 py-1.5 bg-slate-50 rounded border border-slate-200">
+                <div class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center">
+                    <span class="text-white text-sm font-semibold">{{ strtoupper(substr($username ?? 'A', 0, 1)) }}</span>
+                </div>
+                <div>
+                    <div class="text-sm font-semibold text-slate-900 leading-tight">{{ $username ?? 'Administrator' }}</div>
+                    <div class="text-xs text-slate-500">Administrator</div>
+                </div>
             </div>
-            <div class="h-6 w-px bg-slate-300"></div>
-            <span class="text-slate-700 text-sm font-medium">{{ $username ?? 'Administrator' }}</span>
             
             <form method="POST" action="{{ route('logout') }}" class="inline">
                 @csrf
-                <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded text-xs font-semibold transition-all duration-200">
+                <button type="submit" class="px-4 py-1.5 bg-white border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white rounded text-xs font-semibold transition-all duration-200">
                     <i class="fas fa-sign-out-alt mr-1.5"></i>Logout
                 </button>
             </form>

@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use App\Models\User;
 use App\Models\Alat;
 use App\Models\Kategori;
@@ -16,42 +18,16 @@ Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-Route::get('/login', function () {
-    return auth()->check() ? redirect()->route('dashboard') : view('auth.login');
-})->name('login');
-
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'username' => 'required|string',
-        'password' => 'required|string|min:6',
-    ]);
-
-    $user = User::where('username', $request->username)->first();
-
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return back()->withErrors(['login' => 'Username atau password salah!'])->onlyInput('username');
-    }
-
-    auth()->login($user);
-    LogAktivitas::createLog($user->user_id, 'Login ke sistem', 'Auth');
-
-    return redirect()->route('dashboard')->with('success', 'Login berhasil!');
-})->name('login.post');
-
-Route::post('/logout', function (Request $request) {
-    if (auth()->check()) {
-        LogAktivitas::createLog(auth()->id(), 'Logout dari sistem', 'Auth');
-        auth()->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-    }
-    return redirect()->route('login')->with('success', 'Logout berhasil!');
-})->name('logout');
-
-// ============ PROTECTED ROUTES ============
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
 Route::middleware('auth')->group(function () {
-    
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // ============ PROTECTED ROUTES ============
+
     // DASHBOARD
     Route::get('/dashboard', function () {
         $user = auth()->user();
@@ -109,57 +85,15 @@ Route::middleware('auth')->group(function () {
     })->name('riwayat-peminjaman.index');
 
     // ========== ADMIN ROUTES ==========
-    Route::middleware('admin')->group(function () {
+    Route::middleware('role:admin')->group(function () {
 
-        // USERS
-        Route::get('/users', function () {
-            $users = User::all();
-            return view('pages.users.index', compact('users'));
-        })->name('users.index');
-
-        Route::post('/users', function (Request $request) {
-            $request->validate([
-                'username' => 'required|string|unique:users',
-                'password' => 'required|string|min:6',
-                'level' => 'required|in:admin,petugas,peminjam',
-            ]);
-
-            User::create([
-                'username' => $request->username,
-                'password' => Hash::make($request->password),
-                'level' => $request->level,
-            ]);
-
-            LogAktivitas::createLog(auth()->id(), "Menambah user: {$request->username}", 'User');
-            return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
-        })->name('users.store');
-
-        Route::put('/users/{user}', function (Request $request, User $user) {
-            $request->validate([
-                'username' => 'required|string|unique:users,username,' . $user->user_id . ',user_id',
-                'password' => 'nullable|string|min:6',
-                'level' => 'required|in:admin,petugas,peminjam',
-            ]);
-
-            $data = $request->only('username', 'level');
-            if ($request->filled('password')) {
-                $data['password'] = Hash::make($request->password);
-            }
-
-            $user->update($data);
-
-            LogAktivitas::createLog(auth()->id(), "Mengubah user: {$user->username}", 'User');
-            return redirect()->route('users.index')->with('success', 'User berhasil diubah!');
-        })->name('users.update');
-
-        Route::delete('/users/{user}', function (User $user) {
-            if ($user->user_id === auth()->id()) {
-                return back()->with('error', 'Tidak bisa hapus akun sendiri!');
-            }
-            LogAktivitas::createLog(auth()->id(), "Menghapus user: {$user->username}", 'User');
-            $user->delete();
-            return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
-        })->name('users.destroy');
+        // ===== USERS =====
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
         // ===== KATEGORI =====
         Route::get('/kategori', function () {
@@ -311,7 +245,7 @@ Route::middleware('auth')->group(function () {
             return back()->with('success', 'Peminjaman berhasil ditolak!');
         })->name('peminjaman.reject');
 
-         // ===== PENGEMBALIAN =====
+        // ===== PENGEMBALIAN =====
         Route::get('/pengembalian', function () {
             $peminjamanans = Peminjaman::where('status', 'disetujui')
                 ->with('user', 'alat')

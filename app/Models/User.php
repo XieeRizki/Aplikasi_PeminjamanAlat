@@ -31,16 +31,25 @@ class User extends Authenticatable
         return $this->hasMany(LogAktivitas::class, 'user_id', 'user_id');
     }
 
+    /**
+     * Check if user is admin
+     */
     public function isAdmin()
     {
         return $this->level === 'admin';
     }
 
+    /**
+     * Check if user is petugas
+     */
     public function isPetugas()
     {
         return $this->level === 'petugas';
     }
 
+    /**
+     * Check if user is peminjam
+     */
     public function isPeminjam()
     {
         return $this->level === 'peminjam';

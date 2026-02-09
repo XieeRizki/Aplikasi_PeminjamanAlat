@@ -197,7 +197,7 @@ Route::middleware('auth')->group(function () {
 
         // ===== ALAT =====
         Route::get('/alat', function () {
-            $alats = Alat::with('kategori')->all();
+            $alats = Alat::with('kategori')->get();
             return view('pages.alat.index', compact('alats'));
         })->name('alat.index');
 

@@ -113,42 +113,40 @@ Route::middleware('auth')->group(function () {
 
         // USERS
         Route::get('/users', function () {
-            $users = User::paginate(10);
+            $users = User::all();
             return view('pages.users.index', compact('users'));
         })->name('users.index');
 
         Route::post('/users', function (Request $request) {
             $request->validate([
-                'username' => 'required|string|unique:users|min:3',
+                'username' => 'required|string|unique:users',
                 'password' => 'required|string|min:6',
                 'level' => 'required|in:admin,petugas,peminjam',
             ]);
 
-            $user = User::create([
+            User::create([
                 'username' => $request->username,
                 'password' => Hash::make($request->password),
                 'level' => $request->level,
             ]);
 
-            LogAktivitas::createLog(auth()->id(), "Menambah user: {$user->username}", 'User');
+            LogAktivitas::createLog(auth()->id(), "Menambah user: {$request->username}", 'User');
             return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
         })->name('users.store');
 
         Route::put('/users/{user}', function (Request $request, User $user) {
             $request->validate([
-                'username' => 'required|string|unique:users,username,' . $user->user_id . ',user_id|min:3',
-                'level' => 'required|in:admin,petugas,peminjam',
+                'username' => 'required|string|unique:users,username,' . $user->user_id . ',user_id',
                 'password' => 'nullable|string|min:6',
+                'level' => 'required|in:admin,petugas,peminjam',
             ]);
 
-            $user->update([
-                'username' => $request->username,
-                'level' => $request->level,
-            ]);
-
+            $data = $request->only('username', 'level');
             if ($request->filled('password')) {
-                $user->update(['password' => Hash::make($request->password)]);
+                $data['password'] = Hash::make($request->password);
             }
+
+            $user->update($data);
 
             LogAktivitas::createLog(auth()->id(), "Mengubah user: {$user->username}", 'User');
             return redirect()->route('users.index')->with('success', 'User berhasil diubah!');
@@ -163,15 +161,15 @@ Route::middleware('auth')->group(function () {
             return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
         })->name('users.destroy');
 
-        // KATEGORI
+        // ===== KATEGORI =====
         Route::get('/kategori', function () {
-            $kategoris = Kategori::paginate(10);
-            return view('pages.kategori.index', compact('kategoris'));
+            $kategori = Kategori::all();
+            return view('pages.kategori.index', compact('kategori'));
         })->name('kategori.index');
 
         Route::post('/kategori', function (Request $request) {
             $request->validate([
-                'nama_kategori' => 'required|string|unique:kategori',
+                'nama_kategori' => 'required|string|unique:kategori,nama_kategori',
                 'deskripsi' => 'nullable|string',
             ]);
 
@@ -197,9 +195,9 @@ Route::middleware('auth')->group(function () {
             return redirect()->route('kategori.index')->with('success', 'Kategori berhasil dihapus!');
         })->name('kategori.destroy');
 
-        // ALAT
+        // ===== ALAT =====
         Route::get('/alat', function () {
-            $alats = Alat::with('kategori')->paginate(10);
+            $alats = Alat::with('kategori')->all();
             return view('pages.alat.index', compact('alats'));
         })->name('alat.index');
 
@@ -220,8 +218,8 @@ Route::middleware('auth')->group(function () {
                 'kode_alat' => $request->kode_alat,
                 'stok_total' => $request->stok_total,
                 'stok_tersedia' => $request->stok_total,
-                'lokasi' => $request->lokasi,
                 'kondisi' => $request->kondisi,
+                'lokasi' => $request->lokasi,
                 'deskripsi' => $request->deskripsi,
             ]);
 
@@ -251,11 +249,41 @@ Route::middleware('auth')->group(function () {
             return redirect()->route('alat.index')->with('success', 'Alat berhasil dihapus!');
         })->name('alat.destroy');
 
-        // CRUD DATA PEMINJAMAN (ADMIN)
+        // ===== PEMINJAMAN (ADMIN MANAGEMENT) =====
         Route::get('/peminjaman', function () {
-            $peminjamans = Peminjaman::with('user', 'alat')->paginate(10);
-            return view('pages.peminjaman.index', compact('peminjamans'));
+            $alats = Alat::all();
+            $peminjamans = Peminjaman::with('user', 'alat')->latest('tanggal_peminjaman')->get();
+            return view('pages.peminjaman.index', compact('peminjamans', 'alats'));
         })->name('peminjaman.index');
+
+        Route::post('/peminjaman', function (Request $request) {
+            $request->validate([
+                'alat_id' => 'required|exists:alat,alat_id',
+                'jumlah' => 'required|integer|min:1',
+                'tanggal_peminjaman' => 'required|date',
+                'tanggal_kembali_rencana' => 'required|date|after_or_equal:tanggal_peminjaman',
+                'tujuan_peminjaman' => 'nullable|string',
+            ]);
+
+            $alat = Alat::findOrFail($request->alat_id);
+
+            if ($request->jumlah > $alat->stok_tersedia) {
+                return back()->with('error', "Stok tidak cukup! Tersedia: {$alat->stok_tersedia}");
+            }
+
+            Peminjaman::create([
+                'user_id' => auth()->id(),
+                'alat_id' => $alat->alat_id,
+                'jumlah' => $request->jumlah,
+                'tanggal_peminjaman' => $request->tanggal_peminjaman,
+                'tanggal_kembali_rencana' => $request->tanggal_kembali_rencana,
+                'tujuan_peminjaman' => $request->tujuan_peminjaman,
+                'status' => 'menunggu',
+            ]);
+
+            LogAktivitas::createLog(auth()->id(), "Membuat peminjaman: {$alat->nama_alat}", 'Peminjaman');
+            return redirect()->route('peminjaman.index')->with('success', 'Peminjaman berhasil dibuat!');
+        })->name('peminjaman.store');
 
         Route::post('/peminjaman/{peminjaman}/approve', function (Peminjaman $peminjaman) {
             if ($peminjaman->status !== 'menunggu') {
@@ -270,8 +298,7 @@ Route::middleware('auth')->group(function () {
 
             $peminjaman->alat->decrement('stok_tersedia', $peminjaman->jumlah);
             LogAktivitas::createLog(auth()->id(), "Menyetujui peminjaman ID: {$peminjaman->peminjaman_id}", 'Peminjaman');
-
-            return back()->with('success', 'Peminjaman disetujui!');
+            return back()->with('success', 'Peminjaman berhasil disetujui!');
         })->name('peminjaman.approve');
 
         Route::post('/peminjaman/{peminjaman}/reject', function (Peminjaman $peminjaman) {
@@ -281,23 +308,19 @@ Route::middleware('auth')->group(function () {
 
             $peminjaman->update(['status' => 'ditolak']);
             LogAktivitas::createLog(auth()->id(), "Menolak peminjaman ID: {$peminjaman->peminjaman_id}", 'Peminjaman');
-
-            return back()->with('success', 'Peminjaman ditolak!');
+            return back()->with('success', 'Peminjaman berhasil ditolak!');
         })->name('peminjaman.reject');
 
-        Route::delete('/peminjaman/{peminjaman}', function (Peminjaman $peminjaman) {
-            LogAktivitas::createLog(auth()->id(), "Menghapus peminjaman ID: {$peminjaman->peminjaman_id}", 'Peminjaman');
-            $peminjaman->delete();
-            return redirect()->route('peminjaman.index')->with('success', 'Peminjaman dihapus!');
-        })->name('peminjaman.destroy');
+         // ===== PENGEMBALIAN =====
+        Route::get('/pengembalian', function () {
+            $peminjamanans = Peminjaman::where('status', 'disetujui')
+                ->with('user', 'alat')
+                ->latest('tanggal_peminjaman')
+                ->get();
+            return view('pages.pengembalian.index', compact('peminjamanans'));
+        })->name('pengembalian.index');
 
-        // CRUD PENGEMBALIAN (ADMIN)
-        Route::get('/pengembalian-crud', function () {
-            $pengembalians = Pengembalian::with('peminjaman.user', 'peminjaman.alat')->paginate(10);
-            return view('pages.pengembalian-crud.index', compact('pengembalians'));
-        })->name('pengembalian-crud.index');
-
-        Route::post('/pengembalian-crud', function (Request $request) {
+        Route::post('/pengembalian', function (Request $request) {
             $request->validate([
                 'peminjaman_id' => 'required|exists:peminjaman,peminjaman_id',
                 'tanggal_kembali_aktual' => 'required|date',
@@ -307,15 +330,18 @@ Route::middleware('auth')->group(function () {
 
             $peminjaman = Peminjaman::findOrFail($request->peminjaman_id);
             
+            // Validasi status peminjaman
             if ($peminjaman->status !== 'disetujui') {
-                return back()->with('error', 'Hanya peminjaman disetujui yang bisa dikembalikan!');
+                return back()->with('error', 'Hanya peminjaman yang disetujui yang bisa dikembalikan!');
             }
 
+            // Hitung keterlambatan
             $tglKembali = strtotime($request->tanggal_kembali_aktual);
             $tglRencana = strtotime($peminjaman->tanggal_kembali_rencana);
             $telat = max(0, ceil(($tglKembali - $tglRencana) / 86400));
             $denda = $telat > 0 ? $telat * 50000 : 0;
 
+            // Buat record pengembalian
             Pengembalian::create([
                 'peminjaman_id' => $peminjaman->peminjaman_id,
                 'tanggal_kembali_aktual' => $request->tanggal_kembali_aktual,
@@ -327,33 +353,49 @@ Route::middleware('auth')->group(function () {
                 'keterangan' => $request->keterangan,
             ]);
 
+            // Update status peminjaman dan stok
             $peminjaman->update(['status' => 'dikembalikan']);
             $peminjaman->alat->increment('stok_tersedia', $peminjaman->jumlah);
 
-            LogAktivitas::createLog(auth()->id(), "Menambah pengembalian untuk peminjaman ID: {$peminjaman->peminjaman_id}", 'Pengembalian');
+            LogAktivitas::createLog(
+                auth()->id(), 
+                "Mencatat pengembalian untuk peminjaman ID: {$peminjaman->peminjaman_id}", 
+                'Pengembalian'
+            );
 
-            return back()->with('success', 'Pengembalian berhasil ditambahkan!');
-        })->name('pengembalian-crud.store');
+            return back()->with('success', 'Pengembalian berhasil dicatat!');
+        })->name('pengembalian.store');
 
-        Route::delete('/pengembalian-crud/{pengembalian}', function (Pengembalian $pengembalian) {
-            $peminjaman = $pengembalian->peminjaman;
-            LogAktivitas::createLog(auth()->id(), "Menghapus pengembalian ID: {$pengembalian->pengembalian_id}", 'Pengembalian');
-            $pengembalian->delete();
-            return redirect()->route('pengembalian-crud.index')->with('success', 'Pengembalian dihapus!');
-        })->name('pengembalian-crud.destroy');
+        // ===== LAPORAN =====
+        Route::get('/laporan', function () {
+            $tanggal = request('tanggal', date('Y-m-d'));
+            
+            $peminjamans = Peminjaman::whereDate('tanggal_peminjaman', $tanggal)->with('user', 'alat')->get();
+            $pengembalians = Pengembalian::whereDate('tanggal_pengembalian', $tanggal)->with('peminjaman')->get();
 
-        // LOG AKTIVITAS
-        Route::get('/log', function () {
+            $totalPeminjamanHariIni = $peminjamans->count();
+            $totalPengembalianHariIni = $pengembalians->count();
+            $totalDendaHariIni = $pengembalians->sum('denda');
+
+            return view('pages.laporan.index', compact('tanggal', 'peminjamans', 'pengembalians', 'totalPeminjamanHariIni', 'totalPengembalianHariIni', 'totalDendaHariIni'));
+        })->name('laporan.index');
+
+        Route::get('/laporan/cetak', function () {
+            $tanggal = request('tanggal', date('Y-m-d'));
+            
+            $peminjamans = Peminjaman::whereDate('tanggal_peminjaman', $tanggal)->with('user', 'alat')->get();
+            $pengembalians = Pengembalian::whereDate('tanggal_pengembalian', $tanggal)->with('peminjaman')->get();
+
+            return view('pages.laporan.cetak', compact('tanggal', 'peminjamans', 'pengembalians'));
+        })->name('laporan.cetak');
+
+        // ===== LOG AKTIVITAS =====
+        Route::get('/log-aktivitas', function () {
             $logs = LogAktivitas::with('user')->latest('timestamp')->paginate(20);
             return view('pages.log.index', compact('logs'));
         })->name('log.index');
 
-    });
-
-    // ========== PETUGAS ROUTES ==========
-    Route::middleware('petugas')->group(function () {
-
-        // MENYETUJUI PEMINJAMAN
+        // ===== PERSETUJUAN PEMINJAMAN =====
         Route::get('/persetujuan', function () {
             $peminjamans = Peminjaman::where('status', 'menunggu')->with('user', 'alat')->paginate(10);
             return view('pages.persetujuan.index', compact('peminjamans'));
@@ -371,9 +413,8 @@ Route::middleware('auth')->group(function () {
             ]);
 
             $peminjaman->alat->decrement('stok_tersedia', $peminjaman->jumlah);
-            LogAktivitas::createLog(auth()->id(), "Menyetujui peminjaman ID: {$peminjaman->peminjaman_id}", 'Peminjaman');
-
-            return back()->with('success', 'Peminjaman disetujui!');
+            LogAktivitas::createLog(auth()->id(), "Menyetujui peminjaman ID: {$peminjaman->peminjaman_id}", 'Persetujuan');
+            return back()->with('success', 'Peminjaman berhasil disetujui!');
         })->name('persetujuan.approve');
 
         Route::post('/persetujuan/{peminjaman}/reject', function (Peminjaman $peminjaman) {
@@ -382,71 +423,8 @@ Route::middleware('auth')->group(function () {
             }
 
             $peminjaman->update(['status' => 'ditolak']);
-            LogAktivitas::createLog(auth()->id(), "Menolak peminjaman ID: {$peminjaman->peminjaman_id}", 'Peminjaman');
-
-            return back()->with('success', 'Peminjaman ditolak!');
+            LogAktivitas::createLog(auth()->id(), "Menolak peminjaman ID: {$peminjaman->peminjaman_id}", 'Persetujuan');
+            return back()->with('success', 'Peminjaman berhasil ditolak!');
         })->name('persetujuan.reject');
-
-        // MEMANTAU PENGEMBALIAN
-        Route::get('/pengembalian', function () {
-            $pengembalians = Pengembalian::with('peminjaman.user', 'peminjaman.alat')->paginate(10);
-            return view('pages.pengembalian.index', compact('pengembalians'));
-        })->name('pengembalian.index');
-
-        Route::post('/pengembalian', function (Request $request) {
-            $request->validate([
-                'peminjaman_id' => 'required|exists:peminjaman,peminjaman_id',
-                'tanggal_kembali_aktual' => 'required|date',
-                'kondisi_alat' => 'required|in:baik,rusak,hilang',
-                'keterangan' => 'nullable|string',
-            ]);
-
-            $peminjaman = Peminjaman::findOrFail($request->peminjaman_id);
-            
-            if ($peminjaman->status !== 'disetujui') {
-                return back()->with('error', 'Hanya peminjaman disetujui yang bisa dikembalikan!');
-            }
-
-            $tglKembali = strtotime($request->tanggal_kembali_aktual);
-            $tglRencana = strtotime($peminjaman->tanggal_kembali_rencana);
-            $telat = max(0, ceil(($tglKembali - $tglRencana) / 86400));
-            $denda = $telat > 0 ? $telat * 50000 : 0;
-
-            Pengembalian::create([
-                'peminjaman_id' => $peminjaman->peminjaman_id,
-                'tanggal_kembali_aktual' => $request->tanggal_kembali_aktual,
-                'kondisi_alat' => $request->kondisi_alat,
-                'keterlambatan_hari' => $telat,
-                'tarif_denda_per_hari' => $telat > 0 ? 50000 : 0,
-                'total_denda' => $denda,
-                'status_denda' => $denda > 0 ? 'belum_lunas' : 'lunas',
-                'keterangan' => $request->keterangan,
-            ]);
-
-            $peminjaman->update(['status' => 'dikembalikan']);
-            $peminjaman->alat->increment('stok_tersedia', $peminjaman->jumlah);
-
-            LogAktivitas::createLog(auth()->id(), "Mencatat pengembalian peminjaman ID: {$peminjaman->peminjaman_id}", 'Pengembalian');
-
-            return back()->with('success', 'Pengembalian berhasil dicatat!');
-        })->name('pengembalian.store');
-
-        // CETAK LAPORAN
-        Route::get('/laporan', function (Request $request) {
-            $tanggal = $request->get('tanggal', date('Y-m-d'));
-            
-            $stats = [
-                'total_peminjaman' => Peminjaman::whereDate('tanggal_peminjaman', $tanggal)->count(),
-                'total_pengembalian' => Pengembalian::whereDate('tanggal_kembali_aktual', $tanggal)->count(),
-                'total_denda' => Pengembalian::whereDate('created_at', $tanggal)->sum('total_denda'),
-            ];
-
-            $peminjamans = Peminjaman::whereDate('tanggal_peminjaman', $tanggal)->with('user', 'alat')->get();
-            $pengembalians = Pengembalian::whereDate('tanggal_kembali_aktual', $tanggal)->with('peminjaman.user', 'peminjaman.alat')->get();
-
-            return view('pages.laporan.index', compact('stats', 'peminjamans', 'pengembalians', 'tanggal'));
-        })->name('laporan.index');
-
     });
-
 });

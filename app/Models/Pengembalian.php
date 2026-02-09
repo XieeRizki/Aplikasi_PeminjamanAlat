@@ -11,9 +11,14 @@ class Pengembalian extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'peminjaman_id', 'tanggal_kembali_aktual', 'kondisi_alat',
-        'keterlambatan_hari', 'tarif_denda_per_hari', 'total_denda',
-        'status_denda', 'keterangan'
+        'peminjaman_id', 
+        'tanggal_kembali_aktual', 
+        'kondisi_alat',
+        'keterlambatan_hari', 
+        'tarif_denda_per_hari', 
+        'total_denda',
+        'status_denda', 
+        'keterangan'
     ];
 
     protected $casts = [

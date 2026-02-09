@@ -391,7 +391,9 @@ Route::middleware('auth')->group(function () {
 
         // ===== LOG AKTIVITAS =====
         Route::get('/log-aktivitas', function () {
-            $logs = LogAktivitas::with('user')->latest('timestamp')->paginate(20);
+            $logs = LogAktivitas::with('user')
+                ->latest('timestamp')
+                ->paginate(10);
             return view('pages.log.index', compact('logs'));
         })->name('log.index');
 

@@ -19,6 +19,6 @@ class CheckRole
             return $next($request);
         }
 
-        abort(403, 'Unauthorized access');
+        return abort(403, 'Anda tidak memiliki akses ke halaman ini!');
     }
 }

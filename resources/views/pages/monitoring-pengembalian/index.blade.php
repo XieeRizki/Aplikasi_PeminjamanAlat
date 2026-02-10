@@ -5,11 +5,9 @@
 @section('content')
     <!-- Header Section -->
     <div class="mb-6">
-        <div class="flex justify-between items-start">
-            <div>
-                <h1 class="text-3xl font-bold text-slate-900">Monitoring Pengembalian</h1>
-                <p class="text-slate-600 text-sm mt-1">Pantau pengembalian alat dari peminjam</p>
-            </div>
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">Monitoring Pengembalian</h1>
+            <p class="text-slate-600 text-sm mt-1">Pantau pengembalian alat dari peminjam</p>
         </div>
     </div>
 
@@ -20,65 +18,164 @@
         </div>
     @endif
 
-    <!-- Table Section -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="w-full">
-            <thead class="bg-slate-800 text-white">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">No</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">User</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Alat</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Jumlah</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Tgl Kembali Rencana</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Tgl Kembali Aktual</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Kondisi</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Status</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-                @forelse($pengembalians as $index => $pengembalian)
-                    <tr class="hover:bg-slate-50">
-                        <td class="px-6 py-4 text-sm text-slate-900">{{ ($pengembalians->currentPage() - 1) * $pengembalians->perPage() + $index + 1 }}</td>
-                        <td class="px-6 py-4 text-sm text-slate-900">
-                            {{ $pengembalian->peminjaman->user->username ?? 'N/A' }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-slate-900">
-                            {{ $pengembalian->peminjaman->alat->nama_alat ?? 'N/A' }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-slate-600">
-                            {{ $pengembalian->peminjaman->jumlah }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-slate-600">
-                            {{ \Carbon\Carbon::parse($pengembalian->peminjaman->tanggal_kembali_rencana)->format('d/m/Y') }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-slate-600">
-                            {{ \Carbon\Carbon::parse($pengembalian->tanggal_kembali_aktual)->format('d/m/Y') }}
-                        </td>
-                        <td class="px-6 py-4 text-sm">
-                            @if($pengembalian->kondisi_alat === 'baik')
-                                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Baik</span>
-                            @else
-                                <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Rusak</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-sm">
-                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">Selesai</span>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-slate-500">
-                            <i class="fas fa-inbox text-3xl mb-2 block"></i>
-                            Belum ada data pengembalian
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    <!-- Cards Grid Section -->
+    @if($pengembalians->count() > 0)
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @forelse($pengembalians as $pengembalian)
+                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border-l-4 border-blue-500">
+                    <!-- Card Header -->
+                    <div class="bg-gradient-to-r from-slate-50 to-slate-100 p-4 border-b border-slate-200">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Peminjam</p>
+                                <p class="text-lg font-bold text-slate-900 mt-1">{{ $pengembalian->peminjaman->user->username ?? 'N/A' }}</p>
+                            </div>
+                            <div class="bg-blue-100 px-3 py-1 rounded-full">
+                                <span class="text-xs font-bold text-blue-800">SELESAI</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="p-4 space-y-4">
+                        <!-- Alat Info -->
+                        <div class="bg-blue-50 rounded-lg p-3">
+                            <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Alat</p>
+                            <p class="text-sm font-bold text-blue-900 mt-1 flex items-center space-x-2">
+                                <i class="fas fa-tools"></i>
+                                <span>{{ $pengembalian->peminjaman->alat->nama_alat ?? 'N/A' }}</span>
+                            </p>
+                        </div>
+
+                        <!-- Details Row 1 -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- Jumlah -->
+                            <div class="bg-purple-50 rounded-lg p-3">
+                                <p class="text-xs font-semibold text-purple-600 uppercase tracking-wider">Jumlah</p>
+                                <p class="text-lg font-bold text-purple-900 mt-1">{{ $pengembalian->peminjaman->jumlah }} Unit</p>
+                            </div>
+
+                            <!-- Kondisi Alat -->
+                            <div class="rounded-lg p-3 {{ $pengembalian->kondisi_alat === 'baik' ? 'bg-green-50' : 'bg-red-50' }}">
+                                <p class="text-xs font-semibold {{ $pengembalian->kondisi_alat === 'baik' ? 'text-green-600' : 'text-red-600' }} uppercase tracking-wider">Kondisi</p>
+                                <p class="text-lg font-bold {{ $pengembalian->kondisi_alat === 'baik' ? 'text-green-900' : 'text-red-900' }} mt-1">
+                                    {{ ucfirst($pengembalian->kondisi_alat) }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Details Row 2 -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- Tgl Peminjaman -->
+                            <div class="bg-orange-50 rounded-lg p-3">
+                                <p class="text-xs font-semibold text-orange-600 uppercase tracking-wider">Tgl Pinjam</p>
+                                <p class="text-sm font-bold text-orange-900 mt-1">{{ \Carbon\Carbon::parse($pengembalian->peminjaman->tanggal_peminjaman)->format('d/m/Y') }}</p>
+                            </div>
+
+                            <!-- Tgl Pengembalian -->
+                            <div class="bg-indigo-50 rounded-lg p-3">
+                                <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Tgl Kembali</p>
+                                <p class="text-sm font-bold text-indigo-900 mt-1">{{ \Carbon\Carbon::parse($pengembalian->tanggal_kembali_aktual)->format('d/m/Y') }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Rencana vs Aktual -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- Rencana -->
+                            <div class="bg-cyan-50 rounded-lg p-3">
+                                <p class="text-xs font-semibold text-cyan-600 uppercase tracking-wider">Rencana Kembali</p>
+                                <p class="text-sm font-bold text-cyan-900 mt-1">{{ \Carbon\Carbon::parse($pengembalian->peminjaman->tanggal_kembali_rencana)->format('d/m/Y') }}</p>
+                            </div>
+
+                            <!-- Status Keterlambatan -->
+                            @php
+                                $tglRencana = \Carbon\Carbon::parse($pengembalian->peminjaman->tanggal_kembali_rencana);
+                                $tglAktual = \Carbon\Carbon::parse($pengembalian->tanggal_kembali_aktual);
+                                $terlambat = $tglAktual->isAfter($tglRencana);
+                                $hariTerlambat = $tglAktual->diffInDays($tglRencana);
+                            @endphp
+                            <div class="rounded-lg p-3 {{ $terlambat ? 'bg-red-50' : 'bg-green-50' }}">
+                                <p class="text-xs font-semibold {{ $terlambat ? 'text-red-600' : 'text-green-600' }} uppercase tracking-wider">Status</p>
+                                <p class="text-sm font-bold {{ $terlambat ? 'text-red-900' : 'text-green-900' }} mt-1">
+                                    @if($terlambat)
+                                        Terlambat {{ $hariTerlambat }} Hari
+                                    @else
+                                        Tepat Waktu
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Keterangan -->
+                        @if($pengembalian->keterangan)
+                            <div class="bg-slate-50 rounded-lg p-3">
+                                <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Keterangan</p>
+                                <p class="text-sm text-slate-700 mt-1 line-clamp-2">{{ $pengembalian->keterangan }}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <!-- Empty State -->
+                <div class="col-span-full">
+                    <div class="bg-white rounded-lg shadow p-12 text-center">
+                        <i class="fas fa-inbox text-6xl text-slate-300 mb-4 block"></i>
+                        <p class="text-slate-500 font-medium text-xl">Belum ada data pengembalian</p>
+                        <p class="text-slate-400 text-sm mt-2">Pengembalian alat akan muncul di sini</p>
+                    </div>
+                </div>
+            @endforelse
+        </div>
 
         <!-- Pagination -->
-        <div class="px-6 py-4 border-t border-slate-200">
-            {{ $pengembalians->links() }}
+        @if($pengembalians->hasPages())
+            <div class="mt-8 flex justify-center">
+                {{ $pengembalians->links() }}
+            </div>
+        @endif
+    @else
+        <!-- Empty State - Full Page -->
+        <div class="bg-white rounded-lg shadow p-12 text-center">
+            <i class="fas fa-inbox text-6xl text-slate-300 mb-4 block"></i>
+            <p class="text-slate-500 font-medium text-xl">Belum ada data pengembalian</p>
+            <p class="text-slate-400 text-sm mt-2">Pengembalian alat akan muncul di sini</p>
         </div>
-    </div>
+    @endif
+
+    <!-- Custom Pagination Styling -->
+    <style>
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .pagination a:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .pagination .active span {
+            background-color: #1e293b;
+            color: white;
+            border-color: #1e293b;
+        }
+
+        .pagination .disabled {
+            color: #cbd5e1;
+            cursor: not-allowed;
+        }
+    </style>
 @endsection

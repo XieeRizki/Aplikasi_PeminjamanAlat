@@ -80,25 +80,6 @@
                             <span>Login</span>
                         </button>
                     </form>
-
-                    <!-- Demo Credentials -->
-                    <div class="mt-6 pt-6 border-t border-slate-200">
-                        <p class="text-xs text-slate-600 font-medium mb-3">Demo Akun Tersedia:</p>
-                        <div class="space-y-2">
-                            <div class="bg-slate-50 p-3 rounded text-xs">
-                                <p class="font-semibold text-slate-900">Admin</p>
-                                <p class="text-slate-600">admin / admin123</p>
-                            </div>
-                            <div class="bg-slate-50 p-3 rounded text-xs">
-                                <p class="font-semibold text-slate-900">Petugas</p>
-                                <p class="text-slate-600">petugas / petugas123</p>
-                            </div>
-                            <div class="bg-slate-50 p-3 rounded text-xs">
-                                <p class="font-semibold text-slate-900">Peminjam</p>
-                                <p class="text-slate-600">peminjam / peminjam123</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

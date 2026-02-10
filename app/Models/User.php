@@ -3,53 +3,37 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory;
+    use Notifiable;
 
     protected $table = 'users';
     protected $primaryKey = 'user_id';
     public $timestamps = true;
 
-    protected $fillable = ['username', 'password', 'level'];
-    protected $hidden = ['password'];
+    protected $fillable = [
+        'username',
+        'email',
+        'password',
+        'level',
+    ];
 
-    protected function casts(): array
-    {
-        return ['password' => 'hashed'];
-    }
+    protected $hidden = [
+        'password',
+    ];
 
-    public function peminjaman()
-    {
-        return $this->hasMany(Peminjaman::class, 'user_id', 'user_id');
-    }
-
-    public function logAktivitas()
-    {
-        return $this->hasMany(LogAktivitas::class, 'user_id', 'user_id');
-    }
-
-    /**
-     * Check if user is admin
-     */
     public function isAdmin()
     {
         return $this->level === 'admin';
     }
 
-    /**
-     * Check if user is petugas
-     */
     public function isPetugas()
     {
         return $this->level === 'petugas';
     }
 
-    /**
-     * Check if user is peminjam
-     */
     public function isPeminjam()
     {
         return $this->level === 'peminjam';
